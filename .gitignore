@@ -1,0 +1,24 @@
+# 环境与密钥
+.env
+*.local
+
+# Go
+/backend/bin/
+/backend/tmp/
+*.test
+*.out
+
+# Node / 前端
+node_modules/
+dist/
+.pnpm-store/
+*.tsbuildinfo
+.turbo/
+
+# 日志
+*.log
+
+# 系统/编辑器
+.DS_Store
+.idea/
+.vscode/
