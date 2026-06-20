@@ -20,8 +20,10 @@ import (
 )
 
 func main() {
-	// 加载 .env（不存在则忽略，使用 conf 里的缺省值）。
+	// 加载 .env（不存在则忽略）。兼顾两种运行目录：CWD/.env 与仓库根 ../.env
+	// （make dev 从 backend/ 运行，根目录的 .env 走后一条）。先加载的优先。
 	_ = godotenv.Load()
+	_ = godotenv.Load("../.env")
 	logger.Init() // 配置 slog 默认 logger
 
 	cfg := conf.Load()
@@ -35,7 +37,7 @@ func main() {
 	handler := middleware.Chain(mux,
 		middleware.Recovery(),
 		middleware.RequestID(),
-		middleware.CORS(),
+		middleware.CORS(cfg.CORS.AllowedOrigins),
 		middleware.AccessLog(),
 	)
 

@@ -44,6 +44,10 @@ test: test-be test-fe
 test-be:
 	cd backend && go test ./...
 
+# 集成测试：跑真实中间件(需先 make up)。infra 适配器(DB/Redis/外部HTTP)用 //go:build integration 隔离。
+test-be-int:
+	cd backend && go test -tags integration ./...
+
 test-fe:
 	cd frontend && pnpm test
 

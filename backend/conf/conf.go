@@ -1,6 +1,9 @@
 package conf
 
-import "os"
+import (
+	"os"
+	"strings"
+)
 
 // Config 是全局配置。对齐 coze-studio 的 conf/ 分层：配置集中、从环境变量加载。
 // 右size：用最简单的 env 读取，不引入 viper；够用且零依赖。
@@ -10,6 +13,10 @@ type Config struct {
 	Redis    RedisConfig
 	MinIO    MinIOConfig
 	JWT      JWTConfig
+	SMS      SMSConfig
+	OAuth    OAuthConfig
+	Session  SessionConfig
+	CORS     CORSConfig
 }
 
 type MySQLConfig struct {
@@ -31,8 +38,36 @@ type MinIOConfig struct {
 }
 
 type JWTConfig struct {
-	Secret   string
-	TTLHours int
+	Secret string
+}
+
+// SessionConfig access/refresh 与 refresh cookie 的配置。
+type SessionConfig struct {
+	AccessTTLMinutes int
+	RefreshTTLDays   int
+	CookieName       string
+	CookieSecure     bool   // 生产 true；本地 http dev false（否则 Secure cookie 不落）
+	CookieDomain     string // 默认空=当前主机
+}
+
+// CORSConfig 允许携带凭证的跨域来源白名单。
+type CORSConfig struct {
+	AllowedOrigins []string
+}
+
+// SMSConfig 短信验证码相关配置。Provider 预留以后切换真实网关（console=dev 打日志）。
+type SMSConfig struct {
+	Provider        string
+	CodeTTLSeconds  int
+	CooldownSeconds int
+}
+
+// OAuthConfig 第三方登录配置。未配置 client 时对应 provider 优雅关闭。
+type OAuthConfig struct {
+	GitHubClientID     string
+	GitHubClientSecret string
+	GitHubRedirectURL  string // 后端回调，须与 GitHub OAuth App 里填的一致
+	FrontendURL        string // 登录成功后跳回的前端地址
 }
 
 // Load 从环境变量读取配置，缺省值面向本地 docker-compose。
@@ -55,8 +90,28 @@ func Load() *Config {
 			UseSSL:    false,
 		},
 		JWT: JWTConfig{
-			Secret:   env("JWT_SECRET", "dev-secret-change-me"),
-			TTLHours: 168,
+			Secret: env("JWT_SECRET", "dev-secret-change-me"),
+		},
+		Session: SessionConfig{
+			AccessTTLMinutes: 15,
+			RefreshTTLDays:   30,
+			CookieName:       env("COOKIE_NAME", "vibe_refresh"),
+			CookieSecure:     env("COOKIE_SECURE", "false") == "true",
+			CookieDomain:     env("COOKIE_DOMAIN", ""),
+		},
+		CORS: CORSConfig{
+			AllowedOrigins: splitCSV(env("ALLOWED_ORIGINS", "http://localhost:5173")),
+		},
+		SMS: SMSConfig{
+			Provider:        env("SMS_PROVIDER", "console"),
+			CodeTTLSeconds:  300,
+			CooldownSeconds: 60,
+		},
+		OAuth: OAuthConfig{
+			GitHubClientID:     env("GITHUB_CLIENT_ID", ""),
+			GitHubClientSecret: env("GITHUB_CLIENT_SECRET", ""),
+			GitHubRedirectURL:  env("OAUTH_GITHUB_REDIRECT_URL", "http://localhost:8888/api/v1/auth/oauth/github/callback"),
+			FrontendURL:        env("FRONTEND_URL", "http://localhost:5173"),
 		},
 	}
 }
@@ -66,4 +121,15 @@ func env(key, def string) string {
 		return v
 	}
 	return def
+}
+
+// splitCSV 把逗号分隔串切成去空白的非空项。
+func splitCSV(s string) []string {
+	var out []string
+	for _, p := range strings.Split(s, ",") {
+		if p = strings.TrimSpace(p); p != "" {
+			out = append(out, p)
+		}
+	}
+	return out
 }

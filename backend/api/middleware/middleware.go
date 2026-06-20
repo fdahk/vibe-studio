@@ -67,11 +67,20 @@ func RequestID() Middleware {
 	}
 }
 
-// CORS 简单跨域中间件（开发期放开）。
-func CORS() Middleware {
+// CORS 跨域中间件：只回显白名单内的 Origin 并允许携带 cookie 凭证。
+// 带 credentials 时浏览器禁止 `*`，故必须回显具体 Origin。
+func CORS(allowedOrigins []string) Middleware {
+	allowed := make(map[string]bool, len(allowedOrigins))
+	for _, o := range allowedOrigins {
+		allowed[o] = true
+	}
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			w.Header().Set("Access-Control-Allow-Origin", "*")
+			if origin := r.Header.Get("Origin"); origin != "" && allowed[origin] {
+				w.Header().Set("Access-Control-Allow-Origin", origin)
+				w.Header().Set("Access-Control-Allow-Credentials", "true")
+				w.Header().Add("Vary", "Origin")
+			}
 			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 			w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, "+RequestIDHeader)
 			if r.Method == http.MethodOptions {

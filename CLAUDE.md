@@ -26,6 +26,16 @@ Go(net/http, DDD 模块化单体) + React 18 monorepo(pnpm + Turborepo)。
 - 不引入 README 里标「⏳待定」的依赖（MQ、validator、Monaco、Sentry、ahooks…），除非确有场景并先确认。
 - UI 组件 / 画布是刻意自研的深核，别引第三方组件库替代。
 
+## 测试规范（硬约束）
+- **代码与测试一起写、一起提交**：测试先行(TDD)最佳，底线同一 commit/PR 内代码 + 测试一起进。**绝不先写完业务再回头补测试**；没测试的代码不进 main。
+- 分层：应用层/纯逻辑 → fake 单测；infra 适配器(DB/Redis/外部 HTTP) → 集成测试 `//go:build integration`（跑真中间件）或 httptest。
+- `make test-be` 只跑单测（CI 无中间件也过）；`make test-be-int` 跑集成测试（需先 `make up`）。
+
+## 模块技术方案（每个模块/功能开发必写）
+- 每开发一个模块/功能，必须在 `docs/模块技术方案/<模块>-技术方案.md` 留详细方案：**方案设计 + 关键解释 + 决策理由（为什么这么选、否决了什么及原因）**。
+- brainstorming 产出的 spec 就落这里（覆盖 superpowers 默认 `docs/superpowers/specs/` 路径）。
+- 方案文档随该模块代码一起提交。
+
 ## 命令速查（详见 Makefile）
 ```
 make up / down        本地中间件(mysql/redis/minio)

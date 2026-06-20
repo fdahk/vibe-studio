@@ -8,4 +8,9 @@ var (
 	ErrNotFound     = New(10004, "资源不存在", 404)
 	ErrConflict     = New(10005, "资源已存在", 409)
 	ErrInternal     = New(10500, "服务器内部错误", 500)
+
+	// 用户/鉴权（2xxxx）。前端按 code 做国际化映射，msg 仅兜底默认中文。
+	ErrPhoneInvalid   = New(20001, "手机号格式不正确", 400)
+	ErrSMSTooFrequent = New(20002, "验证码发送过于频繁，请稍后再试", 429)
+	ErrSMSCodeInvalid = New(20003, "验证码错误或已失效", 400)
 )
