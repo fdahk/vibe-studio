@@ -1,0 +1,8 @@
+packages:
+  - 'apps/*'
+  - 'packages/*'
+
+# 允许这些依赖运行 postinstall(下载/编译平台二进制)，否则 vite/vitest/tailwind 会失败。
+allowBuilds:
+  '@parcel/watcher': true
+  esbuild: true
