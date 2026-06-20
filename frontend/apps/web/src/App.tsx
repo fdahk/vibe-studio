@@ -1,12 +1,30 @@
-import { APP_NAME } from '@vibe/shared'
-import LangSwitch from './components/LangSwitch'
+import { useEffect } from 'react'
+import { Routes, Route } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
+import { useAuthStore } from './store/auth'
+import { bootstrapAuth } from './lib/auth'
+import Landing from './features/marketing/Landing'
+import Home from './features/workspace/Home'
+import OAuthCallback from './features/auth/OAuthCallback'
 
 export default function App() {
+  const { t } = useTranslation()
+  const ready = useAuthStore((s) => s.ready)
+
+  // 首屏静默续期：拿 refresh cookie 换 access，完成前 gate 住路由，避免闪。
+  useEffect(() => {
+    void bootstrapAuth()
+  }, [])
+
+  if (!ready) {
+    return <p className="bg-bg p-6 text-ink-faint">{t('loading')}</p>
+  }
+
   return (
-    <div className="mx-auto mt-12 max-w-md px-4">
-      <LangSwitch />
-      <h1 className="mb-4 text-2xl font-bold">{APP_NAME}</h1>
-      <p className="text-gray-500">脚手架就绪，业务页面建设中…</p>
-    </div>
+    <Routes>
+      <Route path="/" element={<Landing />} />
+      <Route path="/app" element={<Home />} />
+      <Route path="/oauth/callback" element={<OAuthCallback />} />
+    </Routes>
   )
 }

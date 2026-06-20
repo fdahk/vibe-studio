@@ -30,8 +30,42 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** 登录并签发 token */
+        /** 用户名密码登录并签发 token */
         post: operations["login"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/sms/code": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 发送手机号登录验证码 */
+        post: operations["sendSmsCode"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/login/phone": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 手机号验证码登录（新号自动注册）并签发 token */
+        post: operations["loginByPhone"];
         delete?: never;
         options?: never;
         head?: never;
@@ -55,6 +89,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/auth/refresh": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 用 refresh cookie 轮换续期，返回新 access token */
+        post: operations["refresh"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/logout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 登出（吊销会话、清 refresh cookie） */
+        post: operations["logout"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -63,6 +131,10 @@ export interface components {
             id: string;
             username: string;
             email: string;
+            phone?: string;
+            nickname?: string;
+            avatar?: string;
+            status?: string;
             /** Format: int64 */
             created_at: number;
         };
@@ -75,9 +147,19 @@ export interface components {
             username: string;
             password: string;
         };
+        SmsCodeRequest: {
+            phone: string;
+        };
+        PhoneLoginRequest: {
+            phone: string;
+            code: string;
+        };
         AuthData: {
             user: components["schemas"]["User"];
-            token: string;
+            access_token: string;
+        };
+        TokenData: {
+            access_token: string;
         };
         MeData: {
             user: components["schemas"]["User"];
@@ -93,6 +175,17 @@ export interface components {
             code: number;
             msg: string;
             data?: components["schemas"]["MeData"];
+        };
+        OkEnvelope: {
+            /** Format: int32 */
+            code: number;
+            msg: string;
+        };
+        TokenEnvelope: {
+            /** Format: int32 */
+            code: number;
+            msg: string;
+            data?: components["schemas"]["TokenData"];
         };
     };
     responses: never;
@@ -151,6 +244,54 @@ export interface operations {
             };
         };
     };
+    sendSmsCode: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SmsCodeRequest"];
+            };
+        };
+        responses: {
+            /** @description 已发送（dev 环境验证码打印在后端日志） */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OkEnvelope"];
+                };
+            };
+        };
+    };
+    loginByPhone: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PhoneLoginRequest"];
+            };
+        };
+        responses: {
+            /** @description 登录成功 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthEnvelope"];
+                };
+            };
+        };
+    };
     getMe: {
         parameters: {
             query?: never;
@@ -167,6 +308,46 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MeEnvelope"];
+                };
+            };
+        };
+    };
+    refresh: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 续期成功 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TokenEnvelope"];
+                };
+            };
+        };
+    };
+    logout: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 已登出 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OkEnvelope"];
                 };
             };
         };

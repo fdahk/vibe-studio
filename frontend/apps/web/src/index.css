@@ -1,1 +1,52 @@
 @import 'tailwindcss';
+
+/* 全局 design token（Tailwind v4 CSS-first）。组件用语义类(bg-surface/text-ink/text-accent…)，不再硬编码颜色。
+   深色 + 靛蓝主题，取自 our-chat 的 theme-dark 设计语言。 */
+@theme {
+  --color-bg: #0e0e11;
+  --color-surface: #131316;
+  --color-surface-2: #1c1c20;
+  --color-ink: #fafafa;
+  --color-ink-dim: rgba(250, 250, 250, 0.62);
+  --color-ink-faint: rgba(250, 250, 250, 0.36);
+  --color-accent: #6366f1;
+  --color-accent-hover: #818cf8;
+  --color-accent-soft: rgba(99, 102, 241, 0.16);
+  --color-border: rgba(255, 255, 255, 0.08);
+  --color-border-strong: rgba(255, 255, 255, 0.16);
+  --color-danger: #ef4444;
+
+  --radius-md: 0.625rem;
+  --radius-lg: 1rem;
+
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, 'Inter', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  background: var(--color-bg);
+  color: var(--color-ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Tailwind v4 默认按钮 cursor 是 default；交互元素统一给 pointer（基本交互反馈）。 */
+button:not(:disabled),
+[role='button'] {
+  cursor: pointer;
+}
+button:disabled {
+  cursor: not-allowed;
+}
+
+::selection {
+  background: var(--color-accent-soft);
+  color: var(--color-ink);
+}

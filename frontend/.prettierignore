@@ -3,3 +3,4 @@ dist
 .turbo
 pnpm-lock.yaml
 **/schema.d.ts
+CLAUDE.md
